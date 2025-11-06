@@ -252,7 +252,7 @@ bool Tracker::set_target(std::list<Armor> & armors, std::chrono::steady_clock::t
 
   else if (armor.name == ArmorName::base) {
     Eigen::VectorXd P0_dig{{1, 64, 1, 64, 1, 64, 0.4, 100, 1e-4, 0, 0}};
-    target_ = Target(armor, t, 0.3205, 3, P0_dig);
+    target_ = Target(armor, t, 0.3205, 3, P0_dig); //TODO：2026前哨站装甲板形式改变为不同高度，需要特殊情况处理
   }
 
   else {
