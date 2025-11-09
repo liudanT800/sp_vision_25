@@ -19,7 +19,8 @@ Target::Target(
   t_(t),
   is_switch_(false),
   is_converged_(false),
-  switch_count_(0)
+  switch_count_(0),
+  OP_armors(empty_armors)
 {
   auto r = radius;
   priority = armor.priority;
@@ -30,6 +31,50 @@ Target::Target(
   auto center_x = xyz[0] + r * std::cos(ypr[0]);
   auto center_y = xyz[1] + r * std::sin(ypr[0]);
   auto center_z = xyz[2];
+
+  // x vx y vy z vz a w r l h
+  // a: angle
+  // w: angular velocity
+  // l: r2 - r1
+  // h: z2 - z1
+  Eigen::VectorXd x0{{center_x, 0, center_y, 0, center_z, 0, ypr[0], 0, r, 0, 0}};  //初始化预测量
+  Eigen::MatrixXd P0 = P0_dig.asDiagonal();
+
+  // 防止夹角求和出现异常值
+  auto x_add = [](const Eigen::VectorXd & a, const Eigen::VectorXd & b) -> Eigen::VectorXd {
+    Eigen::VectorXd c = a + b;
+    c[6] = tools::limit_rad(c[6]);
+    return c;
+  };
+
+  ekf_ = tools::ExtendedKalmanFilter(x0, P0, x_add);  //初始化滤波器（预测量、预测量协方差）
+}
+
+Target::Target(
+  const std::list<Armor> & armors, std::chrono::steady_clock::time_point t, double radius, int armor_num,
+  Eigen::VectorXd P0_dig)
+: name(armors.front().name),
+  armor_type(armors.front().type),
+  jumped(false),
+  last_id(0),
+  update_count_(0),
+  armor_num_(armor_num),
+  t_(t),
+  is_switch_(false),
+  is_converged_(false),
+  switch_count_(0),
+  OP_armors(armors)
+{
+  const Armor & armor = armors.front(); //TODO：检查之后的逻辑
+  auto r = radius;
+  priority = armor.priority;
+  const Eigen::VectorXd & xyz = armor.xyz_in_world;
+  const Eigen::VectorXd & ypr = armor.ypr_in_world;
+
+  // 旋转中心的坐标
+  auto center_x = xyz[0] + r * std::cos(ypr[0]);
+  auto center_y = xyz[1] + r * std::sin(ypr[0]);
+  auto center_z = xyz[2] + 100; //补正到中间高度
 
   // x vx y vy z vz a w r l h
   // a: angle
