@@ -13,6 +13,7 @@
 
 namespace auto_aim
 {
+static std::list<Armor> empty_armors;
 
 class Target
 {
@@ -27,6 +28,9 @@ public:
   Target(
     const Armor & armor, std::chrono::steady_clock::time_point t, double radius, int armor_num,
     Eigen::VectorXd P0_dig);
+  Target( //TODO:前哨站特判具体实现
+    const std::list<Armor> & armors, std::chrono::steady_clock::time_point t, double radius, int armor_num,
+    Eigen::VectorXd P0_dig);
   Target(double x, double vyaw, double radius, double h);
 
   void predict(std::chrono::steady_clock::time_point t);
@@ -35,7 +39,7 @@ public:
 
   Eigen::VectorXd ekf_x() const;
   const tools::ExtendedKalmanFilter & ekf() const;
-  std::vector<Eigen::Vector4d> armor_xyza_list() const;
+  std::vector<Eigen::Vector4d> armor_xyza_list() const; //TODO:前哨站特判具体实现
 
   bool diverged() const;
 
@@ -49,6 +53,8 @@ private:
   int armor_num_;
   int switch_count_;
   int update_count_;
+  
+  std::list<Armor> OP_armors; //存储前哨站装甲板
 
   bool is_switch_, is_converged_;
 
