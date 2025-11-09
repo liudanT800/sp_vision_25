@@ -257,7 +257,7 @@ bool Tracker::set_target(std::list<Armor> & armors, std::chrono::steady_clock::t
     double height_diff =
       std::abs(OP_armors.back().center.y - OP_armors.front().center.y);
 
-    if (height_diff > 0.1) { //单位mm //TODO：判断时是否需要考虑测量误差
+    if (height_diff > 0.22) { //单位m //TODO：判断时是否需要考虑测量误差
       Eigen::VectorXd P0_dig{{1, 64, 1, 64, 1, 81, 0.4, 100, 1e-4, 0, 0}};
       target_ = Target(OP_armors, t, 0.2765, 3, P0_dig); //TODO：2026前哨站装甲板形式改变为不同高度，需要特殊情况处理
     }
