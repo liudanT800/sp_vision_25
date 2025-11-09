@@ -226,7 +226,7 @@ Eigen::VectorXd Target::ekf_x() const { return ekf_.x; }
 
 const tools::ExtendedKalmanFilter & Target::ekf() const { return ekf_; }
 
-std::vector<Eigen::Vector4d> Target::armor_xyza_list() const
+std::vector<Eigen::Vector4d> Target::armor_xyza_list() const //TODO:修改生成装甲板方式？
 {
   std::vector<Eigen::Vector4d> _armor_xyza_list;
 
