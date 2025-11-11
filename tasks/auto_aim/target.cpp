@@ -319,9 +319,19 @@ Eigen::Vector3d Target::h_armor_xyz(const Eigen::VectorXd & x, int id) const
   auto armor_x = x[0] - r * std::cos(angle);
   auto armor_y = x[2] - r * std::sin(angle);
   auto armor_z = (use_l_h) ? x[4] + x[10] : x[4];
-  if (name == ArmorName::outpost) { //TODO:硬编码是否有优化空间？
-    double outpost_armor_z_offset[3] = {0.0, 0.2, 0.1};
-    armor_z += outpost_armor_z_offset[id];
+  if (name == ArmorName::outpost) { //TODO:尝试ekf的拟合，效果待测试
+    // double outpost_armor_z_offset[3] = {0.0, 0.2, 0.1};
+    // armor_z += outpost_armor_z_offset[id];
+
+    // 基于 x[10] 计算高度分布：id=0最低，id=1最高，id=2中间
+    // x[4] 为中间高度，x[10] 为高度间隔的一半
+    if (id == 0) {
+      armor_z = x[4] - x[10];  // 最低
+    } else if (id == 1) {
+      armor_z = x[4] + x[10];  // 最高
+    } else { // id == 2
+      armor_z = x[4];          // 中间高度
+    }
   }
 
   return {armor_x, armor_y, armor_z};
