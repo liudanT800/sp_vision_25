@@ -65,7 +65,7 @@ Target::Target(
   switch_count_(0),
   OP_armors(armors)
 {
-  const Armor & armor = armors.front(); //TODO：检查之后的逻辑
+  const Armor & armor = armors.front(); //使用高度最低的装甲板
   auto r = radius;
   priority = armor.priority;
   const Eigen::VectorXd & xyz = armor.xyz_in_world;
@@ -74,14 +74,14 @@ Target::Target(
   // 旋转中心的坐标
   auto center_x = xyz[0] + r * std::cos(ypr[0]);
   auto center_y = xyz[1] + r * std::sin(ypr[0]);
-  auto center_z = xyz[2] + 100; //补正到中间高度
+  auto center_z = xyz[2] + 0.1; //补正到中间高度
 
   // x vx y vy z vz a w r l h
   // a: angle
   // w: angular velocity
   // l: r2 - r1
   // h: z2 - z1
-  Eigen::VectorXd x0{{center_x, 0, center_y, 0, center_z, 0, ypr[0], 0, r, 0, 0}};  //初始化预测量
+  Eigen::VectorXd x0{{center_x, 0, center_y, 0, center_z, 0, ypr[0], 0, r, 0, 0}};  //以中部高度初始化预测量
   Eigen::MatrixXd P0 = P0_dig.asDiagonal();
 
   // 防止夹角求和出现异常值
@@ -280,6 +280,7 @@ std::vector<Eigen::Vector4d> Target::armor_xyza_list() const //TODO:修改生成
     Eigen::Vector3d xyz = h_armor_xyz(ekf_.x, i);
     _armor_xyza_list.push_back({xyz[0], xyz[1], xyz[2], angle});
   }
+  
   return _armor_xyza_list;
 }
 
@@ -318,6 +319,10 @@ Eigen::Vector3d Target::h_armor_xyz(const Eigen::VectorXd & x, int id) const
   auto armor_x = x[0] - r * std::cos(angle);
   auto armor_y = x[2] - r * std::sin(angle);
   auto armor_z = (use_l_h) ? x[4] + x[10] : x[4];
+  if (name == ArmorName::outpost) { //TODO:硬编码是否有优化空间？
+    double outpost_armor_z_offset[3] = {0.0, 0.2, 0.1};
+    armor_z += outpost_armor_z_offset[id];
+  }
 
   return {armor_x, armor_y, armor_z};
 }
