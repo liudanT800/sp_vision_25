@@ -237,7 +237,7 @@ int main(int argc, char * argv[])
   tools::Plotter plotter;
   tools::Exiter exiter;
 
-  auto video_path = fmt::format("{}.mp4", input_path);
+  auto video_path = fmt::format("{}.avi", input_path);
   auto text_path = fmt::format("{}.txt", input_path);
   cv::VideoCapture video(video_path);
   std::ifstream text(text_path);
