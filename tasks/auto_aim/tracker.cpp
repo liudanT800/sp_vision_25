@@ -246,7 +246,7 @@ bool Tracker::set_target(std::list<Armor> & armors, std::chrono::steady_clock::t
   }
 
   else if (armor.name == ArmorName::outpost) { //前哨站装甲板不同高度特判
-    std::list<Armor> OP_armors;
+    std::vector<Armor> OP_armors;
     for (const auto & a : armors) {
       if (a.name == ArmorName::outpost) {
         OP_armors.push_back(a);

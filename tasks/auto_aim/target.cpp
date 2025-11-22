@@ -51,7 +51,7 @@ Target::Target(
 }
 
 Target::Target(
-  const std::list<Armor> & armors, std::chrono::steady_clock::time_point t, double radius, int armor_num,
+  const std::vector<Armor> & armors, std::chrono::steady_clock::time_point t, double radius, int armor_num,
   Eigen::VectorXd P0_dig)
 : name(armors.front().name),
   armor_type(armors.front().type),
