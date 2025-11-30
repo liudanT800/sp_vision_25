@@ -114,7 +114,7 @@ private:
   ArmorPriority omni_target_priority_;
 
   // Candidate management for outpost
-  std::vector<candidate_target> candidates_;
+  candidate_target candidates_outpost;
   double candidate_max_age_s_;
   double candidate_match_radius_m_;
   double duplicate_check_window_s_;
