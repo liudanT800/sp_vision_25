@@ -71,10 +71,16 @@ Target::Target(
   const Eigen::VectorXd & xyz = armor.xyz_in_world;
   const Eigen::VectorXd & ypr = armor.ypr_in_world;
 
+  // 动态计算中心高度（所有装甲板高度的平均值）
+  double sum_z = 0.0;
+  for (const auto & a : armors) {
+    sum_z += a.xyz_in_world[2];
+  }
+  auto center_z = sum_z / armors.size();
+
   // 旋转中心的坐标
   auto center_x = xyz[0] + r * std::cos(ypr[0]);
   auto center_y = xyz[1] + r * std::sin(ypr[0]);
-  auto center_z = xyz[2] + 0.1; //补正到中间高度
 
   // x vx y vy z vz a w r l h
   // a: angle
@@ -319,12 +325,10 @@ Eigen::Vector3d Target::h_armor_xyz(const Eigen::VectorXd & x, int id) const
   auto armor_x = x[0] - r * std::cos(angle);
   auto armor_y = x[2] - r * std::sin(angle);
   auto armor_z = (use_l_h) ? x[4] + x[10] : x[4];
-  if (name == ArmorName::outpost) { //TODO:尝试ekf的拟合，效果待测试
-    // double outpost_armor_z_offset[3] = {0.0, 0.2, 0.1};
-    // armor_z += outpost_armor_z_offset[id];
-
+  if (name == ArmorName::outpost) {
     // 基于 x[10] 计算高度分布：id=0最低，id=1最高，id=2中间
-    // x[4] 为中间高度，x[10] 为高度间隔的一半
+    // x[4] 为中间高度，x[10] 为相邻装甲板的高度间隔（完整间隔，非一半）
+    // 假设均匀分布：最低 = 中心 - 间隔, 最高 = 中心 + 间隔, 中间 = 中心
     if (id == 0) {
       armor_z = x[4] - x[10];  // 最低
     } else if (id == 1) {
@@ -351,7 +355,16 @@ Eigen::MatrixXd Target::h_jacobian(const Eigen::VectorXd & x, int id) const
   auto dx_dl = (use_l_h) ? -std::cos(angle) : 0.0;
   auto dy_dl = (use_l_h) ? -std::sin(angle) : 0.0;
 
-  auto dz_dh = (use_l_h) ? 1.0 : 0.0;
+  // dz_dh: 对于4装甲板用 use_l_h，对于前哨站根据 id 判断
+  double dz_dh = 0.0;
+  if (use_l_h) {
+    dz_dh = 1.0;  // 4装甲板的长短轴高度补偿
+  } else if (name == ArmorName::outpost) {
+    // 前哨站：id=0 时 ∂z/∂x[10] = -1, id=1 时 = +1, id=2 时 = 0
+    if (id == 0) dz_dh = -1.0;
+    else if (id == 1) dz_dh = 1.0;
+    // id == 2 时保持 0.0
+  }
 
   // clang-format off
   Eigen::MatrixXd H_armor_xyza{
