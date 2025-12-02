@@ -74,7 +74,7 @@ namespace auto_aim
 {
 //应对前哨站需要跨帧选择目标的情况
 struct candidate_target{ 
-  std::vector<Armor> armors;
+  std::vector<Armor> armors = {};
   std::chrono::steady_clock::time_point first_seen;
   std::chrono::steady_clock::time_point last_seen;
   ArmorName name;

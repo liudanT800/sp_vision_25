@@ -77,7 +77,7 @@ int main(int argc, char * argv[])
 
     auto yolo_start = std::chrono::steady_clock::now();
     auto armors = yolo.detect(img, frame_count);
-
+    
     auto tracker_start = std::chrono::steady_clock::now();
     auto targets = tracker.track(armors, timestamp);
 

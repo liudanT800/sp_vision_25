@@ -325,7 +325,7 @@ Eigen::Vector3d Target::h_armor_xyz(const Eigen::VectorXd & x, int id) const
   auto armor_x = x[0] - r * std::cos(angle);
   auto armor_y = x[2] - r * std::sin(angle);
   auto armor_z = (use_l_h) ? x[4] + x[10] : x[4];
-  if (name == ArmorName::outpost) {
+  if (name == ArmorName::outpost) {//TODO：ai代码检查
     // 基于 x[10] 计算高度分布：id=0最低，id=1最高，id=2中间
     // x[4] 为中间高度，x[10] 为相邻装甲板的高度间隔（完整间隔，非一半）
     // 假设均匀分布：最低 = 中心 - 间隔, 最高 = 中心 + 间隔, 中间 = 中心

@@ -32,8 +32,9 @@ Tracker::Tracker(const std::string & config_path, Solver & solver)
   candidate_match_radius_m_ = config["tracker"]["candidate_match_radius_m"].as<double>(0.5);
   duplicate_check_window_s_ = config["tracker"]["duplicate_check_window_s"].as<double>(0.15);
   outpost_height_bucket_size_ = config["tracker"]["outpost_height_bucket_size"].as<double>(0.06);
-  outpost_min_height_span_ = config["tracker"]["outpost_min_height_span"].as<double>(0.15);
+  outpost_min_height_span_ = config["tracker"]["outpost_min_height_span"].as<double>(0.11);//20cm-误差3cm*3
   switch_cooldown_s_ = config["tracker"]["switch_cooldown_s"].as<double>(0.5);
+  
 }
 
 std::string Tracker::state() const { return state_; }
@@ -240,9 +241,12 @@ void Tracker::state_machine(bool found)
 
 bool Tracker::set_target(std::list<Armor> & armors, std::chrono::steady_clock::time_point t)
 {
-  if (armors.empty()) return false;
 
-  // Process all armors and solve for world coordinates
+  if (armors.empty()) {
+    // tools::logger()->debug("[Tracker] No armors to set target from");
+    return false;
+  }
+
   for (auto & armor : armors) {
     solver_.solve(armor);
 
@@ -334,7 +338,7 @@ void Tracker::add_or_update_candidate(
   const int height_bucket = get_height_bucket(z);
 
   auto &candidate = candidates_outpost;
-  
+  tools::logger()->debug("[Tracker] Considering armor at z={:.3f}m (bucket={})", z, height_bucket);
   if (candidate.consumed || 
       (!candidate.armors.empty() && 
        (candidate.name != armor.name || candidate.type != armor.type))) {
@@ -365,11 +369,20 @@ void Tracker::add_or_update_candidate(
   }
 
   if (!height_exists) {
+    // Calculate min/max z for logging
+    double min_z = armor.xyz_in_world[2];
+    double max_z = armor.xyz_in_world[2];
+    for (const auto & existing : candidate.armors) {
+      double existing_z = existing.xyz_in_world[2];
+      min_z = std::min(min_z, existing_z);
+      max_z = std::max(max_z, existing_z);
+    }
+    
     candidate.armors.push_back(armor);
     candidate.last_seen = t;
     tools::logger()->debug(
-      "[Tracker] Added NEW armor plate: bucket={} z={:.3f}m (total unique: {})", 
-      height_bucket, z, candidate.armors.size());
+      "[Tracker] Added NEW armor plate: bucket={} z={:.3f}m (total unique: {}, min_z={:.3f}m, max_z={:.3f}m)", 
+      height_bucket, z, candidate.armors.size(), min_z, max_z);
   } else {
     // Same height bucket exists - just update timestamp (deduplication)
     candidate.last_seen = t;
@@ -435,7 +448,7 @@ bool Tracker::try_promote_candidate(std::chrono::steady_clock::time_point t)
     });
 
     // Create Target with multi-armor constructor
-    Eigen::VectorXd P0_dig{{1, 64, 1, 64, 1, 81, 0.4, 100, 1e-4, 0, 0}};
+    Eigen::VectorXd P0_dig{{1, 64, 1, 64, 1, 81, 0.4, 100, 1e-4, 0, 1}};
     target_ = Target(unique_armors, t, 0.2765, 3, P0_dig);
     candidate.consumed = true;
     last_switch_time_ = t;
@@ -455,7 +468,7 @@ double Tracker::compute_height_span(const std::vector<Armor> & armors) const
   double min_z = armors.front().xyz_in_world[2];
   double max_z = min_z;
   for (const auto & armor : armors) {
-    double z = armor.xyz_in_world[2];   double z = armor.xyz_in_world[2];
+    double z = armor.xyz_in_world[2];
     min_z = std::min(min_z, z);
     max_z = std::max(max_z, z);
   }
