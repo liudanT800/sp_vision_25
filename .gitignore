@@ -13,3 +13,6 @@ testvideos/
 watchdog.sh
 records_24/
 records_25/
+debug_plot_data_mp4.jsonl
+debug_plot_data.jsonl
+log.md
