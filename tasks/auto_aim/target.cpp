@@ -19,7 +19,8 @@ Target::Target(
   t_(t),
   is_switch_(false),
   is_converged_(false),
-  switch_count_(0)
+  switch_count_(0),
+  OP_armors(empty_armors)
 {
   auto r = radius;
   priority = armor.priority;
@@ -37,6 +38,56 @@ Target::Target(
   // l: r2 - r1
   // h: z2 - z1
   Eigen::VectorXd x0{{center_x, 0, center_y, 0, center_z, 0, ypr[0], 0, r, 0, 0}};  //初始化预测量
+  Eigen::MatrixXd P0 = P0_dig.asDiagonal();
+
+  // 防止夹角求和出现异常值
+  auto x_add = [](const Eigen::VectorXd & a, const Eigen::VectorXd & b) -> Eigen::VectorXd {
+    Eigen::VectorXd c = a + b;
+    c[6] = tools::limit_rad(c[6]);
+    return c;
+  };
+
+  ekf_ = tools::ExtendedKalmanFilter(x0, P0, x_add);  //初始化滤波器（预测量、预测量协方差）
+}
+
+Target::Target(
+  const std::vector<Armor> & armors, std::chrono::steady_clock::time_point t, double radius, int armor_num,
+  Eigen::VectorXd P0_dig)
+: name(armors.front().name),
+  armor_type(armors.front().type),
+  jumped(false),
+  last_id(0),
+  update_count_(0),
+  armor_num_(armor_num),
+  t_(t),
+  is_switch_(false),
+  is_converged_(false),
+  switch_count_(0),
+  OP_armors(armors)
+{
+  const Armor & armor = armors.front(); //使用高度最低的装甲板
+  auto r = radius;
+  priority = armor.priority;
+  const Eigen::VectorXd & xyz = armor.xyz_in_world;
+  const Eigen::VectorXd & ypr = armor.ypr_in_world;
+
+  // 动态计算中心高度（所有装甲板高度的平均值）
+  double sum_z = 0.0;
+  for (const auto & a : armors) {
+    sum_z += a.xyz_in_world[2];
+  }
+  auto center_z = sum_z / armors.size();
+
+  // 旋转中心的坐标
+  auto center_x = xyz[0] + r * std::cos(ypr[0]);
+  auto center_y = xyz[1] + r * std::sin(ypr[0]);
+
+  // x vx y vy z vz a w r l h
+  // a: angle
+  // w: angular velocity
+  // l: r2 - r1
+  // h: z2 - z1
+  Eigen::VectorXd x0{{center_x, 0, center_y, 0, center_z, 0, ypr[0], 0, r, 0, 0}};  //以中部高度初始化预测量
   Eigen::MatrixXd P0 = P0_dig.asDiagonal();
 
   // 防止夹角求和出现异常值
@@ -226,7 +277,7 @@ Eigen::VectorXd Target::ekf_x() const { return ekf_.x; }
 
 const tools::ExtendedKalmanFilter & Target::ekf() const { return ekf_; }
 
-std::vector<Eigen::Vector4d> Target::armor_xyza_list() const
+std::vector<Eigen::Vector4d> Target::armor_xyza_list() const //TODO:修改生成装甲板方式？
 {
   std::vector<Eigen::Vector4d> _armor_xyza_list;
 
@@ -235,6 +286,7 @@ std::vector<Eigen::Vector4d> Target::armor_xyza_list() const
     Eigen::Vector3d xyz = h_armor_xyz(ekf_.x, i);
     _armor_xyza_list.push_back({xyz[0], xyz[1], xyz[2], angle});
   }
+  
   return _armor_xyza_list;
 }
 
@@ -273,6 +325,18 @@ Eigen::Vector3d Target::h_armor_xyz(const Eigen::VectorXd & x, int id) const
   auto armor_x = x[0] - r * std::cos(angle);
   auto armor_y = x[2] - r * std::sin(angle);
   auto armor_z = (use_l_h) ? x[4] + x[10] : x[4];
+  if (name == ArmorName::outpost) {//TODO：ai代码检查
+    // 基于 x[10] 计算高度分布：id=0最低，id=1最高，id=2中间
+    // x[4] 为中间高度，x[10] 为相邻装甲板的高度间隔（完整间隔，非一半）
+    // 假设均匀分布：最低 = 中心 - 间隔, 最高 = 中心 + 间隔, 中间 = 中心
+    if (id == 0) {
+      armor_z = x[4] - x[10];  // 最低
+    } else if (id == 1) {
+      armor_z = x[4] + x[10];  // 最高
+    } else { // id == 2
+      armor_z = x[4];          // 中间高度
+    }
+  }
 
   return {armor_x, armor_y, armor_z};
 }
@@ -291,7 +355,16 @@ Eigen::MatrixXd Target::h_jacobian(const Eigen::VectorXd & x, int id) const
   auto dx_dl = (use_l_h) ? -std::cos(angle) : 0.0;
   auto dy_dl = (use_l_h) ? -std::sin(angle) : 0.0;
 
-  auto dz_dh = (use_l_h) ? 1.0 : 0.0;
+  // dz_dh: 对于4装甲板用 use_l_h，对于前哨站根据 id 判断
+  double dz_dh = 0.0;
+  if (use_l_h) {
+    dz_dh = 1.0;  // 4装甲板的长短轴高度补偿
+  } else if (name == ArmorName::outpost) {
+    // 前哨站：id=0 时 ∂z/∂x[10] = -1, id=1 时 = +1, id=2 时 = 0
+    if (id == 0) dz_dh = -1.0;
+    else if (id == 1) dz_dh = 1.0;
+    // id == 2 时保持 0.0
+  }
 
   // clang-format off
   Eigen::MatrixXd H_armor_xyza{
