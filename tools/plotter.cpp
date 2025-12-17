@@ -60,11 +60,11 @@ void Plotter::plot(const nlohmann::json & json)
 
   // TODO: 临时保存到本地查看
   // 保存到本地文件（JSONL 格式，每行一个 JSON 对象）
-  static std::ofstream local_file("debug_plot_data.jsonl");
-  if (local_file.is_open()) {
-    local_file << data << "\n";
-    local_file.flush();
-  }
+  // static std::ofstream local_file("debug_plot_data.jsonl");
+  // if (local_file.is_open()) {
+  //   local_file << data << "\n";
+  //   local_file.flush();
+  // }
 }
 
 >>>>>>> 2e6e333 (测试)
