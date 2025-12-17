@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a704564 (修复行尾)
 #include <fmt/core.h>
 
 #include <chrono>
@@ -196,6 +199,7 @@ int main(int argc, char * argv[])
   }
 
   return 0;
+<<<<<<< HEAD
 =======
 #include <fmt/core.h>
 
@@ -395,4 +399,6 @@ int main(int argc, char * argv[])
 
   return 0;
 >>>>>>> a3c6a0f (添加测试并修正小bug)
+=======
+>>>>>>> a704564 (修复行尾)
 }

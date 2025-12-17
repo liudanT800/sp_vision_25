@@ -1,6 +1,13 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # 同济大学SuperPower战队25赛季自瞄算法开源
 
+=======
+# 同济大学SuperPower战队25赛季自瞄算法开源
+
+##
+已针对新赛季的新版前哨站单位进行适配
+>>>>>>> a704564 (修复行尾)
 ## 本项目亮点
 - 无ROS依赖*，新同学无需学习ROS相关知识就能上手自瞄。
 - 完整工作流，包含开发、编译、调试、部署全流程。
@@ -350,6 +357,7 @@ DPS = 单位时间射击窗口占比 \times 射频 \times 单发子弹伤害
 
 ## Star History
 [![Star History Chart](https://api.star-history.com/svg?repos=TongjiSuperPower/sp_vision_25&type=Date)](https://www.star-history.com/#TongjiSuperPower/sp_vision_25&Date)
+<<<<<<< HEAD
 =======
 # 同济大学SuperPower战队25赛季自瞄算法开源
 
@@ -705,3 +713,5 @@ DPS = 单位时间射击窗口占比 \times 射频 \times 单发子弹伤害
 ## Star History
 [![Star History Chart](https://api.star-history.com/svg?repos=TongjiSuperPower/sp_vision_25&type=Date)](https://www.star-history.com/#TongjiSuperPower/sp_vision_25&Date)
 >>>>>>> fe03028 (修改readme.md)
+=======
+>>>>>>> a704564 (修复行尾)

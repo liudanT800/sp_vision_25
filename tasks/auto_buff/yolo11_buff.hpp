@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿#ifndef AUTO_BUFF__YOLO11_BUFF_HPP
+=======
+#ifndef AUTO_BUFF__YOLO11_BUFF_HPP
+>>>>>>> a704564 (修复行尾)
 #define AUTO_BUFF__YOLO11_BUFF_HPP
 #include <yaml-cpp/yaml.h>
 

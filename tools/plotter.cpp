@@ -1,7 +1,14 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 #include "plotter.hpp"
 
 #include <arpa/inet.h>   // htons, inet_addr
+=======
+#include "plotter.hpp"
+
+#include <arpa/inet.h>   // htons, inet_addr
+#include <fstream>
+>>>>>>> a704564 (修复行尾)
 #include <sys/socket.h>  // socket, sendto
 #include <unistd.h>      // close
 
@@ -22,6 +29,7 @@ void Plotter::plot(const nlohmann::json & json)
 {
   std::lock_guard<std::mutex> lock(mutex_);
   auto data = json.dump();
+<<<<<<< HEAD
   ::sendto(
     socket_, data.c_str(), data.length(), 0, reinterpret_cast<sockaddr *>(&destination_),
     sizeof(destination_));
@@ -68,4 +76,21 @@ void Plotter::plot(const nlohmann::json & json)
 }
 
 >>>>>>> 2e6e333 (测试)
+=======
+  
+  // 发送 UDP 数据
+  ::sendto(
+    socket_, data.c_str(), data.length(), 0, reinterpret_cast<sockaddr *>(&destination_),
+    sizeof(destination_));
+
+  // TODO: 临时保存到本地查看
+  // 保存到本地文件（JSONL 格式，每行一个 JSON 对象）
+  // static std::ofstream local_file("debug_plot_data.jsonl");
+  // if (local_file.is_open()) {
+  //   local_file << data << "\n";
+  //   local_file.flush();
+  // }
+}
+
+>>>>>>> a704564 (修复行尾)
 }  // namespace tools

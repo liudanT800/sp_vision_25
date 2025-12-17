@@ -1,6 +1,11 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # enemy_color: "red"
 enemy_color: "blue"
+=======
+enemy_color: "red"
+# enemy_color: "blue"
+>>>>>>> a704564 (修复行尾)
 
 #####-----神经网络参数-----#####
 yolo_name: yolov5
@@ -119,6 +124,7 @@ detect:
 aim_time: 0.150         # s
 wait_time: 0.300        # s
 command_fire_gap: 0.080 # s
+<<<<<<< HEAD
 =======
 enemy_color: "red"
 # enemy_color: "blue"
@@ -241,4 +247,6 @@ aim_time: 0.150         # s
 wait_time: 0.300        # s
 command_fire_gap: 0.080 # s
 >>>>>>> 1e511ce (完成调试)
+=======
+>>>>>>> a704564 (修复行尾)
 predict_time: 0.150     # s
