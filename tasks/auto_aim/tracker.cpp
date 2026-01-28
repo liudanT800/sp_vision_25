@@ -32,7 +32,7 @@ Tracker::Tracker(const std::string & config_path, Solver & solver)
   candidate_match_radius_m_ = config["tracker"]["candidate_match_radius_m"].as<double>(0.5);
   duplicate_check_window_s_ = config["tracker"]["duplicate_check_window_s"].as<double>(0.15);
   outpost_height_bucket_size_ = config["tracker"]["outpost_height_bucket_size"].as<double>(0.06);
-  outpost_min_height_span_ = config["tracker"]["outpost_min_height_span"].as<double>(0.11);//20cm-误差3cm*3
+  outpost_min_height_span_ = config["tracker"]["outpost_min_height_span"].as<double>(0.11);//装甲板上下高度差204-误差30*3
   switch_cooldown_s_ = config["tracker"]["switch_cooldown_s"].as<double>(0.5);
   
 }
@@ -449,7 +449,7 @@ bool Tracker::try_promote_candidate(std::chrono::steady_clock::time_point t)
 
     // Create Target with multi-armor constructor
     Eigen::VectorXd P0_dig{{1, 64, 1, 64, 1, 81, 0.4, 100, 1e-4, 0, 1}};
-    target_ = Target(unique_armors, t, 0.2765, 3, P0_dig);
+    target_ = Target(unique_armors, t, 0.275, 3, P0_dig);
     candidate.consumed = true;
     last_switch_time_ = t;
 
